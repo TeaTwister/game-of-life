@@ -1,14 +1,18 @@
 package com.gol;
 
+import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.transform.Affine;
+import javafx.scene.transform.NonInvertibleTransformException;
 
 public class MainWindow extends VBox {
     private boolean drawAlive = true;
@@ -22,6 +26,8 @@ public class MainWindow extends VBox {
     private final Canvas canvas;
     private final Affine affine;
     private final Toolbar toolbar;
+    private final InfoBar info;
+    private final Pane spacer;
     private final GraphicsContext gc;
     private final Simulation sim;
 
@@ -47,9 +53,18 @@ public class MainWindow extends VBox {
 
         toolbar = new Toolbar(this);
 
+        info = new InfoBar();
+        canvas.setOnMouseMoved(e -> info.setPositionLabel(getScaledPosition(e)));
+        info.setModeLabel(drawAlive);
+
+        spacer = new Pane();
+        spacer.setMinSize(0, 0);
+        spacer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+
         sim = new Simulation(X_RES, Y_RES);
 
-        getChildren().addAll(toolbar, canvas);
+        getChildren().addAll(toolbar, canvas, spacer, info);
         setOnKeyPressed(this::onKeyPressed);
         redraw();
     }
@@ -86,16 +101,18 @@ public class MainWindow extends VBox {
     }
 
     private void editPress(MouseEvent e) {
-        int x = (int) (e.getX() / X_SCALE);
-        int y = (int) (e.getY() / Y_SCALE);
+        int[] pos = getScaledPosition(e);
+        int x = pos[0];
+        int y = pos[1];
         if (!sim.isAlive(x, y)) sim.setAlive(sim.board, x, y);
         else sim.setDead(sim.board, x, y);
         redraw();
     }
 
     private void editDrag(MouseEvent e) {
-        int x = (int) (e.getX() / X_SCALE);
-        int y = (int) (e.getY() / Y_SCALE);
+        int[] pos = getScaledPosition(e);
+        int x = pos[0];
+        int y = pos[1];
         if (drawAlive && !sim.isAlive(x, y)) {
             sim.setAlive(sim.board, x, y);
             redraw();
@@ -105,13 +122,26 @@ public class MainWindow extends VBox {
         }
     }
 
+    private int[] getScaledPosition(MouseEvent e) {
+        int[] pos = new int[2];
+        try {
+            Point2D p2d = affine.inverseTransform(e.getX(), e.getY());
+            pos[0] = (int) p2d.getX();
+            pos[1] = (int) p2d.getY();
+        } catch (NonInvertibleTransformException nonInvertibleTransformException) {
+            nonInvertibleTransformException.printStackTrace();
+        }
+        return pos;
+    }
+
     private void onKeyPressed(KeyEvent e) {
-        if (e.getCode() == KeyCode.D) drawAlive = true;
-        else if (e.getCode() == KeyCode.E) drawAlive = false;
+        if (e.getCode() == KeyCode.D) setDrawAlive(true);
+        else if (e.getCode() == KeyCode.E) setDrawAlive(false);
     }
 
     public void setDrawAlive(boolean drawAlive) {
         this.drawAlive = drawAlive;
+        info.setModeLabel(drawAlive);
     }
 
     public void tick() {
