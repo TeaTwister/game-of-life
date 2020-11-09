@@ -3,12 +3,16 @@ package com.gol;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.transform.Affine;
 
 public class MainWindow extends VBox {
+    private boolean drawAlive = true;
     private final int WIDTH;
     private final int HEIGHT;
     private final int SIZE;
@@ -26,21 +30,15 @@ public class MainWindow extends VBox {
     public MainWindow() {
         WIDTH = 450;
         HEIGHT = 400;
-        SIZE = 80;
+        SIZE = 30;
         X_RES = WIDTH / SIZE;
         Y_RES = HEIGHT / SIZE;
         X_SCALE = ((float) WIDTH) / X_RES;
         Y_SCALE = ((float) HEIGHT) / Y_RES;
 
         canvas = new Canvas(WIDTH, HEIGHT);
-        canvas.setOnMousePressed(e -> {
-            int x = (int) (e.getX() / X_SCALE);
-            int y = (int) (e.getY() / Y_SCALE);
-            System.out.println("x " + x + " y " + y);
-            if (!sim.isAlive(x, y)) sim.setAlive(sim.board, x, y);
-            else sim.setDead(sim.board, x, y);
-            redraw();
-        });
+        canvas.setOnMousePressed(this::editPress);
+        canvas.setOnMouseDragged(this::editDrag);
 
         affine = new Affine();
         affine.appendScale(X_SCALE, Y_SCALE);
@@ -55,14 +53,9 @@ public class MainWindow extends VBox {
         });
 
         sim = new Simulation(X_RES, Y_RES);
-        sim.setAlive(sim.board, 1, 1);
-        sim.setAlive(sim.board, 2, 1);
-        sim.setAlive(sim.board, 3, 1);
-        sim.setAlive(sim.board, 3, 2);
-        sim.setAlive(sim.board, 2, 3);
-        sim.setAlive(sim.board, 1, 4);
 
         this.getChildren().addAll(tick, canvas);
+        this.setOnKeyPressed(this::onKeyPressed);
         redraw();
     }
 
@@ -95,5 +88,30 @@ public class MainWindow extends VBox {
         for (int y = 1; y < Y_RES; y++) {
             gc.strokeLine(0, y, X_RES, y);
         }
+    }
+
+    private void editPress(MouseEvent e) {
+        int x = (int) (e.getX() / X_SCALE);
+        int y = (int) (e.getY() / Y_SCALE);
+        if (!sim.isAlive(x, y)) sim.setAlive(sim.board, x, y);
+        else sim.setDead(sim.board, x, y);
+        redraw();
+    }
+
+    private void editDrag(MouseEvent e) {
+        int x = (int) (e.getX() / X_SCALE);
+        int y = (int) (e.getY() / Y_SCALE);
+        if (drawAlive && !sim.isAlive(x, y)) {
+            sim.setAlive(sim.board, x, y);
+            redraw();
+        } else if (!drawAlive && sim.isAlive(x, y)) {
+            sim.setDead(sim.board, x, y);
+            redraw();
+        }
+    }
+
+    private void onKeyPressed(KeyEvent e) {
+        if (e.getCode() == KeyCode.D) drawAlive = true;
+        else if (e.getCode() == KeyCode.E) drawAlive = false;
     }
 }
