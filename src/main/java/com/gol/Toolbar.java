@@ -18,6 +18,9 @@ public class Toolbar extends ToolBar {
         Button tick = new Button("Tick");
         tick.setOnAction(e -> window.tick());
 
-        getItems().addAll(tick, drawMode, eraseMode);
+        Button clear = new Button("Clear");
+        clear.setOnAction(e -> window.clear());
+
+        getItems().addAll(tick, drawMode, eraseMode, clear);
     }
 }

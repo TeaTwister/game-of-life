@@ -148,4 +148,9 @@ public class MainWindow extends VBox {
         sim.tick();
         redraw();
     }
+
+    public void clear() {
+        sim.clear();
+        redraw();
+    }
 }

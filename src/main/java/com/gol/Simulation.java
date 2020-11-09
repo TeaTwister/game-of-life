@@ -102,4 +102,8 @@ public class Simulation {
     public boolean isAlive(int x, int y) {
         return board[wrapWidth(x)][wrapHeight(y)] == ALIVE;
     }
+
+    public void clear() {
+        board = new int[width][height];
+    }
 }
