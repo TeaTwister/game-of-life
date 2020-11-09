@@ -9,11 +9,13 @@ import javafx.scene.paint.Paint;
 import javafx.scene.transform.Affine;
 
 public class MainWindow extends VBox {
-    private final int width;
-    private final int height;
-    private final int size;
-    private final int xRes;
-    private final int yRes;
+    private final int WIDTH;
+    private final int HEIGHT;
+    private final int SIZE;
+    private final int X_RES;
+    private final int Y_RES;
+    private final double X_SCALE;
+    private final double Y_SCALE;
     private final Button tick;
     private final Canvas canvas;
     private final Affine affine;
@@ -22,15 +24,26 @@ public class MainWindow extends VBox {
 
 
     public MainWindow() {
-        width = 400;
-        height = 400;
-        size = 40;
-        canvas = new Canvas(width, height);
+        WIDTH = 450;
+        HEIGHT = 400;
+        SIZE = 80;
+        X_RES = WIDTH / SIZE;
+        Y_RES = HEIGHT / SIZE;
+        X_SCALE = ((float) WIDTH) / X_RES;
+        Y_SCALE = ((float) HEIGHT) / Y_RES;
 
-        xRes = width / size;
-        yRes = height / size;
+        canvas = new Canvas(WIDTH, HEIGHT);
+        canvas.setOnMousePressed(e -> {
+            int x = (int) (e.getX() / X_SCALE);
+            int y = (int) (e.getY() / Y_SCALE);
+            System.out.println("x " + x + " y " + y);
+            if (!sim.isAlive(x, y)) sim.setAlive(sim.board, x, y);
+            else sim.setDead(sim.board, x, y);
+            redraw();
+        });
+
         affine = new Affine();
-        affine.appendScale(((float) width) / xRes, ((float) height) / yRes);
+        affine.appendScale(X_SCALE, Y_SCALE);
 
         gc = canvas.getGraphicsContext2D();
         gc.setTransform(affine);
@@ -41,32 +54,33 @@ public class MainWindow extends VBox {
             redraw();
         });
 
-        sim = new Simulation(xRes, yRes);
+        sim = new Simulation(X_RES, Y_RES);
         sim.setAlive(sim.board, 1, 1);
         sim.setAlive(sim.board, 2, 1);
         sim.setAlive(sim.board, 3, 1);
         sim.setAlive(sim.board, 3, 2);
         sim.setAlive(sim.board, 2, 3);
+        sim.setAlive(sim.board, 1, 4);
 
         this.getChildren().addAll(tick, canvas);
         redraw();
     }
 
     private void redraw() {
-        drawBackground(Color.rgb(50, 50, 50));
-        drawCells(Color.LIGHTGREY);
-        drawLines(Color.BLACK);
+        drawBackground(Color.rgb(213, 106, 160));
+        drawCells(Color.rgb(252, 240, 204));
+        drawLines(Color.rgb(134, 22, 87));
     }
 
     private void drawBackground(Paint paint) {
         gc.setFill(paint);
-        gc.fillRect(0, 0, xRes, yRes);
+        gc.fillRect(0, 0, X_RES, Y_RES);
     }
 
     private void drawCells(Paint paint) {
         gc.setFill(paint);
-        for (int x = 0; x < xRes; x++) {
-            for (int y = 0; y < yRes; y++) {
+        for (int x = 0; x < X_RES; x++) {
+            for (int y = 0; y < Y_RES; y++) {
                 if (sim.isAlive(x, y)) gc.fillRect(x, y, 1, 1);
             }
         }
@@ -74,12 +88,12 @@ public class MainWindow extends VBox {
 
     private void drawLines(Paint paint) {
         gc.setStroke(paint);
-        gc.setLineWidth(0.1);
-        for (int x = 1; x < xRes; x++) {
-            gc.strokeLine(x, 0, x, yRes);
+        gc.setLineWidth(0.05);
+        for (int x = 1; x < X_RES; x++) {
+            gc.strokeLine(x, 0, x, Y_RES);
         }
-        for (int y = 1; y < yRes; y++) {
-            gc.strokeLine(0, y, xRes, y);
+        for (int y = 1; y < Y_RES; y++) {
+            gc.strokeLine(0, y, X_RES, y);
         }
     }
 }

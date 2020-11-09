@@ -6,7 +6,7 @@ public class Simulation {
     int height;
 
     int[][] board;
-    int[][] stepBoard;
+    int[][] nextBoard;
 
     public Simulation(int width, int height) {
         this.width = width;
@@ -65,22 +65,21 @@ public class Simulation {
     }
 
     public void tick() {
-        stepBoard = new int[width][height];
+        nextBoard = new int[width][height];
         for (int j = 0; j < height; j++) {
             for (int i = 0; i < width; i++) {
                 process(i, j);
             }
         }
-        board = stepBoard;
+        board = nextBoard;
     }
 
     public void process(int x, int y) {
         int count = countAliveNeighbours(x, y);
         if (isAlive(x, y)) {
-            if (count < 2 | count > 3) setDead(stepBoard, x, y);
-            else setAlive(stepBoard, x, y);
-        }
-        else if (count == 3) setAlive(stepBoard, x, y);
+            if (count < 2 | count > 3) setDead(nextBoard, x, y);
+            else setAlive(nextBoard, x, y);
+        } else if (count == 3) setAlive(nextBoard, x, y);
     }
 
     public int countAliveNeighbours(int x, int y) {
