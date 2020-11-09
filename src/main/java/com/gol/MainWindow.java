@@ -2,7 +2,6 @@ package com.gol;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -20,17 +19,17 @@ public class MainWindow extends VBox {
     private final int Y_RES;
     private final double X_SCALE;
     private final double Y_SCALE;
-    private final Button tick;
     private final Canvas canvas;
     private final Affine affine;
+    private final Toolbar toolbar;
     private final GraphicsContext gc;
-    private Simulation sim;
+    private final Simulation sim;
 
 
     public MainWindow() {
         WIDTH = 450;
         HEIGHT = 400;
-        SIZE = 30;
+        SIZE = 20;
         X_RES = WIDTH / SIZE;
         Y_RES = HEIGHT / SIZE;
         X_SCALE = ((float) WIDTH) / X_RES;
@@ -46,22 +45,18 @@ public class MainWindow extends VBox {
         gc = canvas.getGraphicsContext2D();
         gc.setTransform(affine);
 
-        tick = new Button("Tick");
-        tick.setOnAction(e -> {
-            sim.tick();
-            redraw();
-        });
+        toolbar = new Toolbar(this);
 
         sim = new Simulation(X_RES, Y_RES);
 
-        this.getChildren().addAll(tick, canvas);
-        this.setOnKeyPressed(this::onKeyPressed);
+        getChildren().addAll(toolbar, canvas);
+        setOnKeyPressed(this::onKeyPressed);
         redraw();
     }
 
     private void redraw() {
         drawBackground(Color.rgb(213, 106, 160));
-        drawCells(Color.rgb(252, 240, 204));
+        drawLiveCells(Color.rgb(252, 240, 204));
         drawLines(Color.rgb(134, 22, 87));
     }
 
@@ -70,7 +65,7 @@ public class MainWindow extends VBox {
         gc.fillRect(0, 0, X_RES, Y_RES);
     }
 
-    private void drawCells(Paint paint) {
+    private void drawLiveCells(Paint paint) {
         gc.setFill(paint);
         for (int x = 0; x < X_RES; x++) {
             for (int y = 0; y < Y_RES; y++) {
@@ -113,5 +108,14 @@ public class MainWindow extends VBox {
     private void onKeyPressed(KeyEvent e) {
         if (e.getCode() == KeyCode.D) drawAlive = true;
         else if (e.getCode() == KeyCode.E) drawAlive = false;
+    }
+
+    public void setDrawAlive(boolean drawAlive) {
+        this.drawAlive = drawAlive;
+    }
+
+    public void tick() {
+        sim.tick();
+        redraw();
     }
 }
