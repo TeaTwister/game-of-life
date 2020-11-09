@@ -2,6 +2,12 @@ package com.gol;
 import java.util.Scanner;
 
 public class Simulation {
+    static final int DEAD = 0;
+    static final int ALIVE = 1;
+    static final int UNDERPOPULATION = 1;
+    static final int OVERPOPULATION = 4;
+    static final int REPRODUCTION = 3;
+
     int width;
     int height;
 
@@ -41,7 +47,7 @@ public class Simulation {
             StringBuilder sb = new StringBuilder(width + 2);
             sb.append("|");
             for (int i = 0; i < width; i++) {
-                sb.append(board[i][j] == 0 ? "." : "*");
+                sb.append(board[i][j] == DEAD ? "." : "*");
             }
             System.out.println(sb.append("|"));
         }
@@ -49,11 +55,11 @@ public class Simulation {
     }
 
     public void setAlive(int[][] board, int x, int y) {
-        board[wrapWidth(x)][wrapHeight(y)] = 1;
+        board[wrapWidth(x)][wrapHeight(y)] = ALIVE;
     }
 
     public void setDead(int[][] board, int x, int y) {
-        board[wrapWidth(x)][wrapHeight(y)] = 0;
+        board[wrapWidth(x)][wrapHeight(y)] = DEAD;
     }
 
     public int wrapWidth(int x) {
@@ -77,9 +83,9 @@ public class Simulation {
     public void process(int x, int y) {
         int count = countAliveNeighbours(x, y);
         if (isAlive(x, y)) {
-            if (count < 2 | count > 3) setDead(nextBoard, x, y);
+            if (count <= UNDERPOPULATION | count >= OVERPOPULATION) setDead(nextBoard, x, y);
             else setAlive(nextBoard, x, y);
-        } else if (count == 3) setAlive(nextBoard, x, y);
+        } else if (count == REPRODUCTION) setAlive(nextBoard, x, y);
     }
 
     public int countAliveNeighbours(int x, int y) {
@@ -94,6 +100,6 @@ public class Simulation {
     }
 
     public boolean isAlive(int x, int y) {
-        return board[wrapWidth(x)][wrapHeight(y)] != 0;
+        return board[wrapWidth(x)][wrapHeight(y)] == ALIVE;
     }
 }
