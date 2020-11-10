@@ -106,4 +106,14 @@ public class Simulation {
     public void clear() {
         board = new int[width][height];
     }
+
+    public Simulation copyState() {
+        Simulation copy = new Simulation(this.width, this.height);
+        for (int x = 0; x < this.width; x++) {
+            for (int y = 0; y < this.height; y++) {
+                if (this.isAlive(x, y)) copy.setAlive(copy.board, x, y);
+            }
+        }
+        return copy;
+    }
 }
