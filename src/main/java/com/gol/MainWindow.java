@@ -16,6 +16,7 @@ import javafx.scene.transform.NonInvertibleTransformException;
 
 public class MainWindow extends VBox {
     private boolean drawAlive = true;
+    private final Animator animator;
     private final int WIDTH;
     private final int HEIGHT;
     private final int SIZE;
@@ -29,13 +30,15 @@ public class MainWindow extends VBox {
     private final InfoBar info;
     private final Pane spacer;
     private final GraphicsContext gc;
-    private final Simulation sim;
+    private boolean canEdit = true;
+    private Simulation sim;
+    private Simulation initial;
 
 
     public MainWindow() {
         WIDTH = 450;
         HEIGHT = 400;
-        SIZE = 20;
+        SIZE = 10;
         X_RES = WIDTH / SIZE;
         Y_RES = HEIGHT / SIZE;
         X_SCALE = ((float) WIDTH) / X_RES;
@@ -63,6 +66,9 @@ public class MainWindow extends VBox {
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
         sim = new Simulation(X_RES, Y_RES);
+        setCanEdit(true);
+
+        animator = new Animator(this);
 
         getChildren().addAll(toolbar, canvas, spacer, info);
         setOnKeyPressed(this::onKeyPressed);
@@ -101,6 +107,7 @@ public class MainWindow extends VBox {
     }
 
     private void editPress(MouseEvent e) {
+        if (!canEdit) return;
         int[] pos = getScaledPosition(e);
         int x = pos[0];
         int y = pos[1];
@@ -110,6 +117,7 @@ public class MainWindow extends VBox {
     }
 
     private void editDrag(MouseEvent e) {
+        if (!canEdit) return;
         int[] pos = getScaledPosition(e);
         int x = pos[0];
         int y = pos[1];
@@ -140,17 +148,38 @@ public class MainWindow extends VBox {
     }
 
     public void setDrawAlive(boolean drawAlive) {
+        setCanEdit(true);
         this.drawAlive = drawAlive;
         info.setModeLabel(drawAlive);
     }
 
     public void tick() {
+        setCanEdit(false);
         sim.tick();
         redraw();
     }
 
     public void clear() {
+        setCanEdit(true);
         sim.clear();
         redraw();
+    }
+
+    public void setCanEdit(boolean canEdit) {
+        if (this.canEdit == canEdit) return;
+        if (!canEdit) initial = sim.copyState();
+        else {
+            sim = initial.copyState();
+            redraw();
+        }
+        this.canEdit = canEdit;
+    }
+
+    public void play() {
+        animator.play();
+    }
+
+    public void stop() {
+        animator.stop();
     }
 }
